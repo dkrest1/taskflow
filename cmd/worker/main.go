@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/dkrest1/taskflow/internal/model"
+	"github.com/dkrest1/taskflow/internal/worker"
 )
 
 func main() {
@@ -21,13 +21,8 @@ func main() {
 
 	for i := 1; i <= workerCount; i++ {
 
-		go func (workerID int)  {
-			defer wg.Done()
-			for job := range jobQueue {
-				processJob(workerID, job)
-			}
-
-		}(i)
+		go worker.Worker(i, jobQueue, &wg)
+	
 	}
 
 	for i := 1; i <= 10; i++ {
@@ -41,16 +36,5 @@ func main() {
 	wg.Wait()
 	
 }
-
-func processJob(workerID int, job *model.Job) {
-	job.Status = "processing"
-
-	fmt.Printf("Worker %d processing Job %d: %s\n",workerID, job.ID,  job.Payload)
-	time.Sleep(2 * time.Second)
-	job.Status = "completed"
-
-	fmt.Printf("Worker %d completed job %d\n", workerID, job.ID)
-}
-
 
 

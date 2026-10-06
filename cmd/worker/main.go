@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/dkrest1/taskflow/internal/model"
 	"github.com/dkrest1/taskflow/internal/worker"
@@ -22,19 +23,36 @@ func main() {
 	for i := 1; i <= workerCount; i++ {
 
 		go worker.Worker(i, jobQueue, &wg)
-	
+
 	}
 
+	var jobs []*model.Job
+
 	for i := 1; i <= 10; i++ {
-		newJob := model.NewJob(i, "walking")
+
+		durationSeconds := (i-1)%3 + 1
+		duration := time.Duration(durationSeconds) * time.Second
+
+		newJob := model.NewJob(i, "walking", duration)
+
+		jobs = append(jobs, newJob)
+
 		jobQueue <- newJob
 		fmt.Printf("queued job %d: len=%d cap=%d\n", i, len(jobQueue), cap(jobQueue))
 	}
 
 	close(jobQueue)
 
+	go func() {
+		for {
+			for _, job := range jobs {
+				fmt.Printf("JobID: %v, Job Status: %v\n", job.ID, job.Status)
+			}
+
+			time.Sleep(100 * time.Microsecond)
+		}
+	}()
+
 	wg.Wait()
-	
+
 }
-
-

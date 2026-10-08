@@ -43,16 +43,30 @@ func main() {
 
 	close(jobQueue)
 
+	stopMonitor := make(chan struct{})
+
+	var monitorWG sync.WaitGroup
+	monitorWG.Add(1)
+
 	go func() {
+		defer monitorWG.Done()
 		for {
-			for _, job := range jobs {
-				fmt.Printf("JobID: %v, Job Status: %v\n", job.ID, job.Status)
+			select {
+				case <- stopMonitor:
+					return
+				default:
+					for _, job := range jobs {
+						fmt.Printf("JobID: %v, Job Status: %v\n", job.ID, job.GetStatus())
+					} 
+
 			}
 
-			time.Sleep(100 * time.Microsecond)
+			time.Sleep(100 * time.Millisecond)
 		}
 	}()
 
 	wg.Wait()
+	close(stopMonitor)
+	monitorWG.Wait()
 
 }

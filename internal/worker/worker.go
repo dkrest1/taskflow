@@ -16,11 +16,11 @@ func Worker(workerID int, jobQueue <-chan *model.Job, wg *sync.WaitGroup) {
 }
 
 func processJob(workerID int, job *model.Job) {
-	job.Status = "processing"
+	job.SetStatus("processing")
 
 	fmt.Printf("Worker %d processing Job %d: %s(duration: %v)\n", workerID, job.ID, job.Payload, job.Duration)
 	time.Sleep(job.Duration)
-	job.Status = "completed"
+	job.SetStatus("completed")
 
 	fmt.Printf("Worker %d completed job %d\n", workerID, job.ID)
 }

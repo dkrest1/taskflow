@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -16,13 +17,16 @@ func main() {
 
 	var wg sync.WaitGroup
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	workerCount := 3
 
 	wg.Add(workerCount)
 
 	for i := 1; i <= workerCount; i++ {
 
-		go worker.Worker(i, jobQueue, &wg)
+		go worker.Worker(ctx, i, jobQueue, &wg)
 
 	}
 
@@ -53,6 +57,7 @@ func main() {
 		for {
 			select {
 				case <- stopMonitor:
+					fmt.Println("Monitor shutting down...")
 					return
 				default:
 					for _, job := range jobs {
@@ -68,5 +73,8 @@ func main() {
 	wg.Wait()
 	close(stopMonitor)
 	monitorWG.Wait()
+	fmt.Println("Taskflow shutdown complete.")
 
 }
+
+

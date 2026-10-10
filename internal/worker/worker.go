@@ -14,20 +14,20 @@ func Worker(ctx context.Context, workerID int, jobQueue <-chan *model.Job, wg *s
 
 	for {
 		select {
-			case <- ctx.Done():
-				fmt.Println("Worker cancel...")
+		case <-ctx.Done():
+			fmt.Println("Worker cancel...")
+			return
+
+		case job, ok := <-jobQueue:
+
+			if !ok {
+				fmt.Printf("Worker %d: job queue closed\n", workerID)
 				return
+			}
 
-			case job, ok := <- jobQueue:
-
-				if !ok {
-					fmt.Printf("Worker %d: job queue closed\n", workerID)
-					return
-				}
-
-				processJob(ctx ,workerID, job)
+			processJob(ctx, workerID, job)
 		}
-			
+
 	}
 }
 
@@ -37,14 +37,14 @@ func processJob(ctx context.Context, workerID int, job *model.Job) {
 	fmt.Printf("Worker %d processing Job %d: %s(duration: %v)\n", workerID, job.ID, job.Payload, job.Duration)
 
 	select {
-		case <- ctx.Done():
-			fmt.Println("Worker cancel...")
-			job.SetStatus("cancelled")
-			fmt.Printf("Worker %d cancelled job %d\n", workerID, job.ID)
-			return
-		case <- time.After(job.Duration):
-			job.SetStatus("completed")
-			fmt.Printf("Worker %d completed job %d\n", workerID, job.ID)
+	case <-ctx.Done():
+		fmt.Println("Worker cancel...")
+		job.SetStatus("cancelled")
+		fmt.Printf("Worker %d cancelled job %d\n", workerID, job.ID)
+		return
+	case <-time.After(job.Duration):
+		job.SetStatus("completed")
+		fmt.Printf("Worker %d completed job %d\n", workerID, job.ID)
 
 	}
 }

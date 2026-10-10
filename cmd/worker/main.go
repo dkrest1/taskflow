@@ -56,13 +56,13 @@ func main() {
 		defer monitorWG.Done()
 		for {
 			select {
-				case <- stopMonitor:
-					fmt.Println("Monitor shutting down...")
-					return
-				default:
-					for _, job := range jobs {
-						fmt.Printf("JobID: %v, Job Status: %v\n", job.ID, job.GetStatus())
-					} 
+			case <-stopMonitor:
+				fmt.Println("Monitor shutting down...")
+				return
+			default:
+				for _, job := range jobs {
+					fmt.Printf("JobID: %v, Job Status: %v\n", job.ID, job.GetStatus())
+				}
 
 			}
 
@@ -76,5 +76,3 @@ func main() {
 	fmt.Println("Taskflow shutdown complete.")
 
 }
-
-

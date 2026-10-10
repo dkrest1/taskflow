@@ -36,3 +36,4 @@ func (j *Job) GetStatus() string {
 
 	return j.Status
 }
+
